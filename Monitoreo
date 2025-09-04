@@ -1,0 +1,77 @@
+let
+    Source = BDProd,
+    #"Merged Queries" = Table.NestedJoin(Source, {"Fecha"}, #"BD Contingencia", {"Fecha"}, "BD Contingencia", JoinKind.LeftOuter),
+    #"Expanded BD Contingencia" = Table.ExpandTableColumn(#"Merged Queries", "BD Contingencia", {"Hora_DC", "CPU_DC", "RAM_DC", "DISCO_C_DC", "DISCO_D_DC", "DISCO_E_DC", "DISCO_F_DC"}, {"Hora_DC", "CPU_DC", "RAM_DC", "DISCO_C_DC", "DISCO_D_DC", "DISCO_E_DC", "DISCO_F_DC"}),
+    #"Merged Queries3" = Table.NestedJoin(#"Expanded BD Contingencia", {"Fecha"}, #"BD Test", {"Fecha"}, "BD Test", JoinKind.LeftOuter),
+    #"Expanded BD Test" = Table.ExpandTableColumn(#"Merged Queries3", "BD Test", {"Hora_DT", "CPU_DT", "RAM_DT", "DISCO_C_DT", "DISCO_D_DT", "DISCO_E_DT", "DISCO_F_DT"}, {"Hora_DT", "CPU_DT", "RAM_DT", "DISCO_C_DT", "DISCO_D_DT", "DISCO_E_DT", "DISCO_F_DT"}),
+    #"Merged Queries1" = Table.NestedJoin(#"Expanded BD Test", {"Fecha"}, #"BD AD", {"Fecha"}, "BD AD", JoinKind.LeftOuter),
+    #"Merged QueriesA" = Table.NestedJoin(#"Merged Queries1", {"Fecha"}, BD_Main_AD, {"Fecha"}, "BD_Main_AD", JoinKind.LeftOuter),
+    #"Expanded BD AD" = Table.ExpandTableColumn(#"Merged QueriesA", "BD AD", {"Hora_AD", "CPU_AD", "RAM_AD", "DISCO_C_AD", "DISCO_D_AD"}, {"Hora_AD", "CPU_AD", "RAM_AD", "DISCO_C_AD", "DISCO_D_AD"}),
+    #"Expanded BD_Main_AD" = Table.ExpandTableColumn(#"Expanded BD AD", "BD_Main_AD", {"Hora_MAIN_AD", "CPU_MAIN_AD", "RAM_MAIN_AD", "DISCO_C_MAIN_AD"}, {"Hora_MAIN_AD", "CPU_MAIN_AD", "RAM_MAIN_AD", "DISCO_C_MAIN_AD"}),
+    Custom1 = Table.NestedJoin(#"Expanded BD_Main_AD", {"Fecha"}, BD_Main_WSUS, {"Fecha"}, "BD_Main_WSUS", JoinKind.LeftOuter),
+    Custom3 = Table.ExpandTableColumn(#"Custom1", "BD_Main_WSUS", {"Hora_MAIN_WSUS", "CPU_MAIN_WSUS", "RAM_MAIN_WSUS", "DISCO_C_MAIN_WSUS", "DISCO_D_MAIN_WSUS"}, {"Hora_MAIN_WSUS", "CPU_MAIN_WSUS", "RAM_MAIN_WSUS", "DISCO_C_MAIN_WSUS", "DISCO_D_MAIN_WSUS"}),
+    Custom4 = Table.NestedJoin(#"Custom3", {"Fecha"}, BD_Main_HYPERV02, {"Fecha"}, "BD_Main_HYPERV02", JoinKind.LeftOuter),
+    Custom2 = Table.ExpandTableColumn(#"Custom4", "BD_Main_HYPERV02", {"Hora_MAIN_HYPERV02", "CPU_MAIN_HYPERV02", "RAM_MAIN_HYPERV02", "DISCO_C_MAIN_HYPERV02", "DISCO_D_MAIN_HYPERV02"}, {"Hora_MAIN_HYPERV02", "CPU_MAIN_HYPERV02", "RAM_MAIN_HYPERV02", "DISCO_C_MAIN_HYPERV02", "DISCO_D_MAIN_HYPERV02"}),
+    Custom5 = Table.NestedJoin(#"Custom2", {"Fecha"}, BD_Flashbacks, {"Fecha"}, "BD_Flashbacks", JoinKind.LeftOuter),
+    Custom6 = Table.ExpandTableColumn(#"Custom5", "BD_Flashbacks", {"Hora_FlashBack", "SSCM", "FSMC", "FSEM", "FSPF", "FSFI"}, {"Hora_FlashBack", "SSCM", "FSMC", "FSEM", "FSPF", "FSFI"}),
+    #"Changed Type" = Table.TransformColumnTypes(Custom6,{{"Hora_FlashBack", type time}}),
+    #"Merged Queries4" = Table.NestedJoin(#"Changed Type", {"Fecha"}, BD_Datax, {"Fecha"}, "BD_Datax", JoinKind.LeftOuter),
+    #"Expanded BD_Datax" = Table.ExpandTableColumn(#"Merged Queries4", "BD_Datax", {"Hora_DX", "CPU_DX", "RAM_DX", "DISCO_C_DX", "DISCO_D_DX"}, {"Hora_DX", "CPU_DX", "RAM_DX", "DISCO_C_DX", "DISCO_D_DX"}),
+    #"Merged Queries5" = Table.NestedJoin(#"Expanded BD_Datax", {"Fecha"}, BD_HiperV, {"Fecha"}, "BD_HiperV", JoinKind.LeftOuter),
+    #"Expanded BD_HiperV" = Table.ExpandTableColumn(#"Merged Queries5", "BD_HiperV", {"Hora_HV", "CPU_HV", "RAM_HV", "DISCO_C_HV", "DISCO_D_HV"}, {"Hora_HV", "CPU_HV", "RAM_HV", "DISCO_C_HV", "DISCO_D_HV"}),
+    #"Merged Queries6" = Table.NestedJoin(#"Expanded BD_HiperV", {"Fecha"}, HistMainRD, {"Fecha"}, "HistMainRD", JoinKind.LeftOuter),
+    #"Expanded HistMainRD" = Table.ExpandTableColumn(#"Merged Queries6", "HistMainRD", {"CPU_MainRD", "Hora_MainRD", "RAM_MainRD", "DISCO_MainRD"}, {"CPU_MainRD", "Hora_MainRD", "RAM_MainRD", "DISCO_MainRD"}),
+    #"Merged Queries7" = Table.NestedJoin(#"Expanded HistMainRD", {"Fecha"}, HistContRD, {"Fecha"}, "HistContRD", JoinKind.LeftOuter),
+    #"Expanded HistContRD" = Table.ExpandTableColumn(#"Merged Queries7", "HistContRD", {"RAM_ContRD", "DISCO_ContRD", "CPU_ContRD", "Hora_ContRD"}, {"RAM_ContRD", "DISCO_ContRD", "CPU_ContRD", "Hora_ContRD"}),
+    #"Merged Queries2" = Table.NestedJoin(
+    #"Expanded HistContRD",
+    {"Fecha"},
+    BD_Manual,
+    {"Fecha"},
+    "BD_Manual",
+    JoinKind.FullOuter
+),
+   
+    #"Expanded BD_Manual" = Table.ExpandTableColumn(#"Merged Queries2", "BD_Manual",
+        {"Fecha","Obs_ Flash","Hora_Frios","Frios","Obs_Frios","Hora_Camara","Camaras","Obs_Camaras","Hora_QyR","Sincronización_QyR","Obs_QyR","Hora_SyR","Sincronización_SyR","Obs_SyR","Hora_SyQ","Sincronización_SyQ","Obs_SyQ","Hora_VS1","CPU_VS1","RAM_VS1","DISCO_VS1","Obs_VS1","Hora_VS2","CPU_VS2","RAM_VS2","DISCO_VS2","Obs_VS2","Obs_MainRD","Obs_ContRD","Obs_DP","Obs_DC","Obs_DT","Obs_AD","Obs_HV","Obs_DATAX","Obs_MAIN-AD","Obs_MAIN-WSUS","Obs_MAIN-HYPERV02","Hora_Temperatura","DC_Temperatura","Obs_Temperatura","Hora_Internet","AXS","Tigo","Obs_Internet","Hora_Internet2","AXS DCA","Obs_Internet2"},
+        {"Fecha1","Obs_ Flash","Hora_Frios","Frios","Obs_Frios","Hora_Camara","Camaras","Obs_Camaras","Hora_QyR","Sincronización_QyR","Obs_QyR","Hora_SyR","Sincronización_SyR","Obs_SyR","Hora_SyQ","Sincronización_SyQ","Obs_SyQ","Hora_VS1","CPU_VS1","RAM_VS1","DISCO_VS1","Obs_VS1","Hora_VS2","CPU_VS2","RAM_VS2","DISCO_VS2","Obs_VS2","Obs_MainRD","Obs_ContRD","Obs_DP","Obs_DC","Obs_DT","Obs_AD","Obs_HV","Obs_DATAX","Obs_MAIN-AD","Obs_MAIN-WSUS","Obs_MAIN-HYPERV02","Hora_Temperatura","DC_Temperatura","Obs_Temperatura","Hora_Internet","AXS","Tigo","Obs_Internet","Hora_Internet2","AXS DCA","Obs_Internet2"}),
+
+    // 👇 Aquí unimos la fecha original con la de BD_Manual
+    #"Added Final Fecha" = Table.AddColumn(#"Expanded BD_Manual", "Fecha_Final", each if [Fecha] <> null then [Fecha] else [Fecha1], type date),
+    #"Removed Old Fechas" = Table.RemoveColumns(#"Added Final Fecha", {"Fecha","Fecha1"}),
+    #"Renamed Final Fecha" = Table.RenameColumns(#"Removed Old Fechas", {{"Fecha_Final","Fecha"}}),
+
+    #"Appended Query" = Table.Combine({#"Renamed Final Fecha", Historicos}),
+    #"Changed Type3" = Table.TransformColumnTypes(#"Appended Query",{{"Fecha", type date}}),
+    #"Reordered Columns" =
+    Table.ReorderColumns(
+        #"Changed Type3",
+        {
+            "Fecha","Hora_FlashBack","SSCM","FSMC","FSEM","FSPF","FSFI","Obs_ Flash",
+            "Hora_Frios","Frios","Obs_Frios",
+            "Hora_Temperatura","DC_Temperatura","Obs_Temperatura",
+            "Hora_Internet","AXS","Tigo","Obs_Internet",
+            "Hora_Internet2","AXS DCA","Obs_Internet2",
+            "Hora_Camara","Camaras","Obs_Camaras",
+            "Hora_QyR","Sincronización_QyR","Obs_QyR",
+            "Hora_SyQ","Sincronización_SyQ","Obs_SyQ",
+            "Hora_SyR","Sincronización_SyR","Obs_SyR",
+            "Hora_DP","CPU_DP","RAM_DP","DISCO_C_DP","DISCO_D_DP","DISCO_E_DP","DISCO_F_DP","Obs_DP",
+            "Hora_DC","CPU_DC","RAM_DC","DISCO_C_DC","DISCO_D_DC","DISCO_E_DC","DISCO_F_DC","Obs_DC",
+            "Hora_DT","CPU_DT","RAM_DT","DISCO_C_DT","DISCO_D_DT","DISCO_E_DT","DISCO_F_DT","Obs_DT",
+            "Hora_AD","CPU_AD","RAM_AD","DISCO_C_AD","DISCO_D_AD","Obs_AD",
+            "Hora_MAIN_AD","CPU_MAIN_AD","RAM_MAIN_AD","DISCO_C_MAIN_AD","Obs_MAIN-AD",
+            "Hora_MAIN_WSUS","CPU_MAIN_WSUS","RAM_MAIN_WSUS","DISCO_C_MAIN_WSUS","DISCO_D_MAIN_WSUS","Obs_MAIN-WSUS",
+            "Hora_MAIN_HYPERV02","CPU_MAIN_HYPERV02","RAM_MAIN_HYPERV02","DISCO_C_MAIN_HYPERV02","DISCO_D_MAIN_HYPERV02","Obs_MAIN-HYPERV02",
+            "Hora_HV","CPU_HV","RAM_HV","DISCO_C_HV","DISCO_D_HV","Obs_HV",
+            "Hora_DX","CPU_DX","RAM_DX","DISCO_C_DX","DISCO_D_DX","Obs_DATAX",
+            "Hora_MainRD","CPU_MainRD","RAM_MainRD","DISCO_MainRD","Obs_MainRD",
+            "Hora_ContRD","CPU_ContRD","RAM_ContRD","DISCO_ContRD","Obs_ContRD",
+            "Hora_VS1","CPU_VS1","RAM_VS1","DISCO_VS1","Obs_VS1",
+            "Hora_VS2","CPU_VS2","RAM_VS2","DISCO_VS2","Obs_VS2"
+        },
+        MissingField.Ignore
+    ),
+    #"Sorted Rows" = Table.Sort(#"Reordered Columns",{{"Fecha", Order.Ascending}})
+in
+    #"Sorted Rows"
