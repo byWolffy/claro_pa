@@ -1,0 +1,200 @@
+Exp Grupo CdR Lim
+=
+IF(
+    'Cartera_Consolidada'[Fondo] = "SFI" &&
+    'Cartera_Consolidada'[Grupo CdR Lim] IN {"AAA o N-1", "N-1"},
+    "AAA o N-1",
+    'Cartera_Consolidada'[Grupo CdR Lim]
+)
+
+
+
+CarteraTotalFondo Agrupado:=CALCULATE([Suma Cartera Total],ALL(Cartera_Consolidada[Emisor]),ALL(Cartera_Consolidada[Exp Grupo CdR Lim]),ALL(Cartera_Consolidada[Cartera]))
+
+
+
+Diferencia (%) (Agrupado):=[Límite Táctico Máximo (Agrupado)] - [Límite Real (Agrupado)]
+
+
+
+
+Diferencia (MontoBs) (Agrupado):=[Diferencia (%) (Agrupado)] * [CarteraTotalFondo Agrupado]
+
+
+
+
+Límite Real (Agrupado):=DIVIDE([Suma Cartera Total], [CarteraTotalFondo Agrupado], 0)
+
+
+
+Límite Táctico Máximo (Agrupado):=VAR TOTALFONDO = [CarteraTotalFondo Agrupado]
+VAR LIM =
+AVERAGEX (
+    Cartera_Consolidada,
+    IF (
+        [Fondo] = "SMC",
+        IF (
+            [Exp Grupo CdR Lim] = "TGN", 1,
+            IF (
+                [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "A3 o mejor", 0.18,
+                IF (
+                    [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "De BBB3 a BBB1", 0.1,
+                    IF (
+                        [Exp Grupo CdR Lim] = "A3 o mejor",
+                        IF (
+                            [Promedio Patrimonio] * 0.75 < TOTALFONDO * 0.18,
+                            ([Promedio Patrimonio] * 0.75) / TOTALFONDO,
+                            0.18
+                        ),
+                        IF (
+                            [Promedio Patrimonio] * 0.65 < TOTALFONDO * 0.1,
+                            ([Promedio Patrimonio] * 0.65) / TOTALFONDO,
+                            0.1
+                        )
+                    )
+                )
+            )
+        ),
+        IF (
+            [Fondo] = "SEM",
+            IF (
+                [Exp Grupo CdR Lim] = "TGN", 1,
+                IF (
+                    [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "AAA", 0.35,
+                    IF (
+                        [Exp Grupo CdR Lim] = "De AA3 a AA1", 0.3,
+                        IF (
+                            [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "De A3 a A1", 0.1,
+                            IF (
+                                [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "De BBB3 a BBB1", 0.08,
+                                IF (
+                                    [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "N-1", 0.15,
+                                    IF (
+                                        [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "N-2", 0.1,
+                                        IF (
+                                            [Exp Grupo CdR Lim] = "N-1", 0.15,
+                                            IF (
+                                                [Exp Grupo CdR Lim] = "N-2", 0.1,
+                                                IF (
+                                                    [Exp Grupo CdR Lim] = "De AA3 a AA1",
+                                                    IF (
+                                                        [Promedio Patrimonio] = 0,
+                                                        0.08,
+                                                        IF (
+                                                            [Promedio Patrimonio] * 0.4 < TOTALFONDO * 0.08,
+                                                            ([Promedio Patrimonio] * 0.4) / TOTALFONDO,
+                                                            0.08
+                                                        )
+                                                    ),
+                                                    IF (
+                                                        [Exp Grupo CdR Lim] = "De A3 a A1",
+                                                        IF (
+                                                            [Promedio Patrimonio] * 0.5 < TOTALFONDO * 0.1,
+                                                            ([Promedio Patrimonio] * 0.5) / TOTALFONDO,
+                                                            0.1
+                                                        ),
+                                                        IF (
+                                                            [Promedio Patrimonio] * 0.4 < TOTALFONDO * 0.08,
+                                                            ([Promedio Patrimonio] * 0.4) / TOTALFONDO,
+                                                            0.08
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            ),
+            IF (
+                [Fondo] = "SPF",
+                IF (
+                    [Exp Grupo CdR Lim] = "TGN", 1,
+                    IF (
+                        [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "AAA", 0.28,
+                        IF (
+                            [Exp Grupo CdR Lim] = "De AA3 a AA1", 0.22,
+                            IF (
+                                [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "De A3 a A1", 0.14,
+                                IF (
+                                    [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "De BBB3 a BBB1", 0.12,
+                                    IF (
+                                        [Exp Grupo CdR Lim] = "N-1", 0.14,
+                                        IF (
+                                            [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "N-2", 0.12,
+                                            IF (
+                                                [Exp Grupo CdR Lim] = "De A3 a A1",
+                                                IF (
+                                                    [Promedio Patrimonio] = 0,
+                                                    0.14,
+                                                    IF (
+                                                        [Promedio Patrimonio] * 0.5 < TOTALFONDO * 0.14,
+                                                        ([Promedio Patrimonio] * 0.5) / TOTALFONDO,
+                                                        0.14
+                                                    )
+                                                ),
+                                                IF (
+                                                    [Promedio Patrimonio] * 0.4 < TOTALFONDO * 0.12,
+                                                    ([Promedio Patrimonio] * 0.4) / TOTALFONDO,
+                                                    0.12
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                ),
+                IF (
+                    [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "AAA o N-1", 0.2,
+                    IF (
+                        [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "De AA3 a AA1", 0.18,
+                        IF (
+                            [Cartera] = "Pública" && [Exp Grupo CdR Lim] = "De A3 a A1", 0.15,
+                            IF (
+                                [Cartera] = "Extranjera", 0.2,
+                                IF (
+                                    OR (
+                                        [Exp Grupo CdR Lim] = "N-1",
+                                        [Exp Grupo CdR Lim] = "AAA o N-1"
+                                    ),
+                                    0.2,
+                                    IF (
+                                        [Exp Grupo CdR Lim] = "De AA3 a AA1", 0.18,
+                                        IF (
+                                            [Exp Grupo CdR Lim] = "De A3 a A1",
+                                            IF (
+                                                [Promedio Patrimonio] = 0,
+                                                0.15,
+                                                IF (
+                                                    [Promedio Patrimonio] * 0.5 < TOTALFONDO * 0.15,
+                                                    ([Promedio Patrimonio] * 0.5) / TOTALFONDO,
+                                                    0.15
+                                                )
+                                            ),
+                                            IF (
+                                                [Promedio Patrimonio] = 0,
+                                                0.05,
+                                                IF (
+                                                    [Promedio Patrimonio] * 0.4 < TOTALFONDO * 0.05,
+                                                    ([Promedio Patrimonio] * 0.4) / TOTALFONDO,
+                                                    0.05
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+RETURN
+LIM
