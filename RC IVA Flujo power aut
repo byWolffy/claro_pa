@@ -1,0 +1,63 @@
+@{first(body('Filter_array'))?['Correo']}
+@{first(body('Filter_array'))?['Correo']}
+
+To: (CORREO) @{first(body('Filter_array'))?['Correo']}
+
+//CONDITIONAL 1
+SUBJECT: Saldo RC-IVA
+
+@{first(body('Filter_array'))?['Saludo']}
+
+Comunicarle que a la fecha no tiene saldo RC-IVA.
+
+En base a una estimación, para el presente mes debe presentar un monto en facturas por @{formatNumber(float(first(body('Filter_array'))?['MontoFacturasPresentRed']), '0,0', 'en-us')} Bs.
+
+Aclarar que este último monto es referencial y es solamente una estimación, el cual podría variar al momento de realizar el pago de planillas.Saludos cordiales,
+
+Teresa Condori
+@{variables('FirmaCapital')}
+
+
+
+//CONDITIONAL 2
+
+@{first(body('Filter_array'))?['Saludo']}
+
+Comunicarle que a la fecha tiene un saldo RC-IVA acumulado de: @{formatNumber(float(first(body('Filter_array'))?['SaldoProxMes']), '0,0', 'en-us')} Bs.
+
+De acuerdo a tu Saldo RC-IVA no tendría que presentar facturas para el presente mes.
+
+Aclarar que esta estimación es referencial, la cual podría variar al momento de realizar el pago de planillas.Saludos cordiales,
+
+Teresa Condori
+@{variables('FirmaCapital')}
+
+
+
+
+
+
+
+
+
+
+
+
+@{first(body('Filter_array'))?['Saludo']}
+
+Comunicarle que a la fecha no tiene saldo RC-IVA.
+
+En base a una estimación, para el mes de Diciembre, debe presentar un monto en facturas por @{formatNumber(float(first(body('Filter_array'))?['MontoFacturasPresentRed']), '0,0', 'en-us')} Bs.
+
+Aclarar que este último monto es referencial y es solamente una estimación, el cual podría variar al momento de realizar el pago de planillas.Saludos cordiales,
+
+Teresa Condori
+@{variables('FirmaCapital')}
+
+
+
+
+
+
+
+
