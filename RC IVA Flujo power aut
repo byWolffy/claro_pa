@@ -55,7 +55,26 @@ Teresa Condori
 @{variables('FirmaCapital')}
 
 
+####################################################################3DICIEMBRE######################################################################################
 
+CASO 1 SI NO TIENE SALDO
+
+
+@{first(body('Filter_array'))?['Saludo']}
+
+El motivo del presente correo es informarte que, debido al pago de la prima anual de la gestión, y considerando que dicho ingreso está alcanzado por impuestos, se requiere la presentación del Formulario 110.
+
+La presentación de este formulario es obligatoria para el personal alcanzado por dicho impuesto, con el fin de evitar la retención del RC-IVA.
+
+En base a una estimación, para el mes de Diciembre, debe presentar un monto en facturas por @{formatNumber(float(first(body('Filter_array'))?['MontoFacturasPresentRed']), '0,0', 'en-us')} Bs.
+
+
+Aclarar que este último monto es referencial y es solamente una estimación, el cual podría variar al momento de realizar el pago de planillas.
+
+Saludos cordiales,
+
+Teresa Condori
+@{variables('FirmaCapital')}
 
 
 
