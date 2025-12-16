@@ -1,0 +1,52 @@
+function main(workbook: ExcelScript.Workbook) {
+
+    const sheet = workbook.getWorksheet("Sheet2");
+    const goal: number = Number(sheet.getRange("D2").getValue());
+
+    const table = workbook.getTable("CartasVenc");
+
+    let currentRows: number = table.getRowCount();
+    const columnCount: number = table.getColumns().length;
+
+    // Si hay que agregar filas
+    if (goal > currentRows) {
+
+        // Tomamos las fórmulas de la última fila existente
+        const lastRowRange = table
+            .getRangeBetweenHeaderAndTotal()
+            .getRow(currentRows - 1);
+
+        const lastRowFormulas = lastRowRange.getFormulas();
+
+        const needed: number = goal - currentRows;
+
+        for (let i = 0; i < needed; i++) {
+
+            // Agregamos fila vacía
+            const emptyRow: string[] = new Array(columnCount).fill("");
+            table.addRow(-1, emptyRow);
+
+            // Pegamos fórmulas en la nueva última fila
+            const newLastIndex = table.getRowCount() - 1;
+
+            table
+                .getRangeBetweenHeaderAndTotal()
+                .getRow(newLastIndex)
+                .setFormulas(lastRowFormulas);
+        }
+    }
+
+    // Si hay que eliminar filas
+    if (goal < currentRows) {
+        const toRemove: number = currentRows - goal;
+
+        for (let i = 0; i < toRemove; i++) {
+            const lastIndex: number = table.getRowCount() - 1;
+
+            table
+                .getRangeBetweenHeaderAndTotal()
+                .getRow(lastIndex)
+                .delete(ExcelScript.DeleteShiftDirection.up);
+        }
+    }
+}
