@@ -1,0 +1,49 @@
+/////////////////////////////////////////////////////JPubOrig
+
+let
+    Source = Oracle.Database("SSCM.WORLD", [HierarchicalNavigation=true, Query="SELECT#(lf)#(lf)DAT_01 Entidad,#(lf)#(lf)DAT_FECHA_01 Fecha_Valuacion,#(lf)#(lf)DAT_03 TipoCartera,#(lf)#(lf)DAT_04 Cliente,#(lf)#(lf)DAT_05 Tipo_Operacion,#(lf)#(lf)DAT_06 Cod_Valoracion,#(lf)#(lf)TO_NUMBER(DAT_07) Plazo_Economico,#(lf)#(lf)DAT_08 Tipo_Inst,#(lf)#(lf)DAT_09 Clave_Inst,#(lf)#(lf)DAT_10 Tipo_Valuacion,#(lf)#(lf)DAT_FECHA_02 Fecha_UH,#(lf)#(lf)TO_NUMBER(DAT_12) DV_Fecha_UH,#(lf)#(lf)TO_NUMBER(DAT_13) Plz_Eco_Fecha_UH,#(lf)#(lf)TO_NUMBER(DAT_14) Tasa_Fecha_UH,#(lf)#(lf)TO_NUMBER(DAT_15) Precio_Fecha_UH,#(lf)#(lf)TO_NUMBER(DAT_16) DV_Hoy,#(lf)#(lf)TO_NUMBER(DAT_17) Plz_Eco_Fecha_Hoy,#(lf)#(lf)TO_NUMBER(DAT_18) Tasa_Equiv,#(lf)#(lf)TO_NUMBER(DAT_19) Precio_Equiv,#(lf)#(lf)TO_NUMBER(DAT_20) Cantidad_Valores,#(lf)#(lf)TO_NUMBER(DAT_21) Total,#(lf)#(lf)DAT_22 Riesgo_Valor,#(lf)#(lf)DAT_23 Custodia,#(lf)#(lf)DAT_24 Vinculacion,#(lf)#(lf)DAT_25 Estado#(lf)#(lf)FROM TABLE(DAZ.PCK_TRANSFER_ARCHIVOS.CONSTRUYE_VISTA("&StartDate&", "&EndDate&", 'SCM','J' ))"]),
+    #"Renamed Columns" = Table.RenameColumns(Source,{{"ENTIDAD", "SAFI"}, {"FECHA_VALUACION", "Fecha Valoración"}, {"TIPOCARTERA", "Tipo de Cartera"}, {"CLIENTE", "Fondo"}, {"TIPO_OPERACION", "Tipo Operación"}, {"COD_VALORACION", "Código Valoración"}, {"PLAZO_ECONOMICO", "Plazo Económico"}, {"TIPO_INST", "Instrumento"}, {"CLAVE_INST", "Serie"}, {"TIPO_VALUACION", "ADQ/HHM"}, {"FECHA_UH", "Fecha UHM"}, {"DV_FECHA_UH", "DV UHM"}, {"PLZ_ECO_FECHA_UH", "PE UHM"}, {"TASA_FECHA_UH", "Tasa UHM"}, {"PRECIO_FECHA_UH", "Precio UHM"}, {"DV_HOY", "Días Vida"}, {"PLZ_ECO_FECHA_HOY", "PE Hoy"}, {"TASA_EQUIV", "Tasa Rendimiento"}, {"PRECIO_EQUIV", "Precio unitario Moneda Original (Hoy)"}, {"CANTIDAD_VALORES", "Cantidad"}, {"TOTAL", "Total Moneda de Origen"}, {"RIESGO_VALOR", "Calificación Emisión"}, {"CUSTODIA", "Custodio"}, {"VINCULACION", "Relación Empresa"}, {"ESTADO", "Estado"}}),
+    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Fecha Valoración", type date}, {"Fecha UHM", type date}}),
+    #"Added Index" = Table.AddIndexColumn(#"Changed Type", "ID", 1, 1, Int64.Type),
+    #"Reordered Columns1" = Table.ReorderColumns(#"Added Index",{"ID", "SAFI", "Fecha Valoración", "Tipo de Cartera", "Fondo", "Tipo Operación", "Código Valoración", "Plazo Económico", "Instrumento", "Serie", "ADQ/HHM", "Fecha UHM", "DV UHM", "PE UHM", "Tasa UHM", "Precio UHM", "Días Vida", "PE Hoy", "Tasa Rendimiento", "Precio unitario Moneda Original (Hoy)", "Cantidad", "Total Moneda de Origen", "Calificación Emisión", "Custodio", "Relación Empresa", "Estado"}),
+    
+    // Transformación del Archivo
+    #"Added Emisor" = Table.AddColumn(#"Reordered Columns1", "Emisor", each if Text.Start([Serie],2) = "N0" or Text.Start([Serie],2) = "NR" or Text.Start([Serie],2) = "NC" or Text.Start([Serie],2) = "U0"
+then "TGN"
+else if Text.Start([Serie],3) ="CLA" then "BME"
+else Text.Start([Serie],3), type text),
+    #"Added Moneda" = Table.AddColumn(#"Added Emisor", "Moneda", each if [Instrumento]="DPF" then Text.Middle([Serie],3,1)
+else if [Instrumento]="BTS" or 
+[Instrumento]="BBS" or
+[Instrumento]="LTS" or
+[Instrumento]="LRS" or
+[Instrumento]="LBS" or
+[Instrumento]="CUP"
+then Text.Middle([Serie],0,1)
+else if [Instrumento]="PGB" then Text.Middle([Serie],8,1)
+else if [Instrumento]="BBB" and ([Emisor]="FIE" or 
+[Emisor]="BTB" or [Emisor]="BGA" or [Emisor]="FFO") and Text.Middle([Código Valoración],8,2)="PS" then Text.Middle([Serie],4,1)
+else if ([Código Valoración]= null and [Emisor]="BTB") or ([Instrumento]="BVS" and [Emisor]="BSO") then Text.Middle([Serie],4,1)
+else Text.Middle([Serie],6,1)),
+    #"Merged Queries1" = Table.NestedJoin(#"Added Moneda", {"Fecha Valoración"}, BD_TCUFV, {"Fecha"}, "BD_TCUFV", JoinKind.LeftOuter),
+    #"Expanded BD_TCUFV" = Table.ExpandTableColumn(#"Merged Queries1", "BD_TCUFV", {"TC_UFV"}, {"TC_UFV"}),
+    #"Added Total en Bs" = Table.AddColumn(#"Expanded BD_TCUFV", "Total en Bs", each if [Moneda]="N" then [Total Moneda de Origen] 
+else if [Moneda]="U" then Number.Round([Total Moneda de Origen]*[TC_UFV],2,RoundingMode.AwayFromZero)
+else [Total Moneda de Origen]*6.86),
+    #"Added Cartera" = Table.AddColumn(#"Added Total en Bs", "Cartera", each "Pública"),
+    #"Added Tipo de Activo" = Table.AddColumn(#"Added Cartera", "Tipo de Activo", each "Renta Fija"),
+    #"Merged Queries" = Table.NestedJoin(#"Added Tipo de Activo", {"Emisor"}, CalBancos, {"Codigo"}, "CalBancos", JoinKind.LeftOuter),
+    #"Expanded CalBancos" = Table.ExpandTableColumn(#"Merged Queries", "CalBancos", {"Clasificación Emisor", "Institución"}, {"CalBancos.Clasificación Emisor", "CalBancos.Institución"}),
+    #"Added Cal Mod 1" = Table.AddColumn(#"Expanded CalBancos", "Calificación Modificado 1", each if [Calificación Emisión] = "N-1" or
+[Calificación Emisión] = "N-2" or
+[Calificación Emisión] = "N-3" then [CalBancos.Clasificación Emisor]
+else [Calificación Emisión]),
+    #"Added Cal Mod 2" = Table.AddColumn(#"Added Cal Mod 1", "Calificación de Riesgo", each if [Emisor] ="TGN" or [Emisor] ="BCB" then "SOB"
+else [Calificación Modificado 1]),
+    #"Changed Type2" = Table.TransformColumnTypes(#"Added Cal Mod 2",{{"Moneda", type text}, {"Calificación Modificado 1", type text}, {"Calificación de Riesgo", type text}, {"Tipo de Activo", type text}, {"Cartera", type text}, {"Total en Bs", type number}}),
+    #"Added Custom" = Table.AddColumn(#"Changed Type2", "Institución", each if [Emisor]="TGN" then "TGN"
+else if [CalBancos.Institución] = null then "OTR"
+else [CalBancos.Institución]),
+    #"Removed Columns" = Table.RemoveColumns(#"Added Custom",{"CalBancos.Institución", "CalBancos.Clasificación Emisor"})
+in
+    #"Removed Columns"
