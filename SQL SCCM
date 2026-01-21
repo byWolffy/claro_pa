@@ -1,0 +1,29 @@
+////////////////////////////////////////////////////SQL LOG IN IN DAZA CONTINGENCIA!///////////////////////////////////////////////
+
+SELECT
+    ide_usured        AS usuario,
+    ide_maquinalogon  AS equipo,
+    ide_usuredlogon   AS usuario_so,
+    ide_fechalogon   AS fecha_logon
+FROM daz.sgr_identificacion
+WHERE ide_maquinalogon IS NOT NULL
+ORDER BY ide_fechalogon DESC;
+
+/////////////////////////////////////////////////////
+
+SELECT
+    ide_usured         AS usuario_aplicacion,
+    ide_usuredlogon    AS usuario_so,
+    ide_maquinalogon   AS equipo,
+    ide_fechalogon     AS fecha_logon,
+    ide_fecha          AS fecha_registro,
+    ide_control        AS control,
+    ide_bloqueo        AS bloqueo
+FROM daz.sgr_identificacion
+WHERE ide_fechalogon >= DATE '2025-01-01'
+  AND ide_fechalogon <  DATE '2026-01-01'
+ORDER BY ide_fechalogon DESC;
+
+//////////////////////////////////////////////////////////
+
+
