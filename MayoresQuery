@@ -1,0 +1,59 @@
+//MAYORES NUEVO PARA SCM////////
+
+
+let
+    Source =
+        Oracle.Database(
+            "SSCM.WORLD",
+            [
+                HierarchicalNavigation = true,
+                Query =
+                    "SELECT
+                        b.dtr_transac ""Identificador Transacción"",
+                        b.cts_cuenta ""Codigo de cuenta"",
+                        c.CTS_NOMBRE  ""Nombre de cuenta"",
+                        CASE
+                            WHEN a.tcb_tipocomprobante IN ('TR','EG','IN')
+                            THEN 'Manual'
+                            ELSE 'Automático'
+                        END ""Tipo de asiento (Auto/Man)"",
+                        a.dtr_transacdef ""Número asiento"",
+                        a.dtr_glosa ""Glosa"",
+                        a.dtr_transac ""Número Documento"",
+                        c.ttc_moneda ""Tipo Moneda"",
+                        daz.pck_validadaz.retdesccodtabla('CTT',c.cts_tratamiento,'ESP') ""Tratamiento"",
+                        CASE WHEN b.trc_operacion = 'D' THEN b.trc_monto_usd END ""Debe USD"",
+                        CASE WHEN b.trc_operacion = 'H' THEN b.trc_monto_usd END ""Haber USD"",
+                        CASE WHEN b.trc_operacion = 'D' THEN b.trc_monto_bob END ""Debe BOB"",
+                        CASE WHEN b.trc_operacion = 'H' THEN b.trc_monto_bob END ""Haber BOB"",
+                        a.dtr_fecha_pre ""Fe-Documento"",
+                        a.dtr_fecha ""FeCrea Transacción"",
+                        'n/a' ""Aprobación Transacción"",
+                        TRUNC(a.dtr_fecha) ""Procesamiento Transac"",
+                        a.dtr_transac ""Número Documento"",
+                        a.dtr_gestion ""Periodo Contabilización"",
+                        a.dtr_preparado_por ""Usuario Registró"",
+                        a.dtr_confirmado_por ""Usuario Aprobó"",
+                        a.dtr_confirmado_por ""Usuario Procesa Transacción""
+                    FROM CTB.DEFTRANSACE_ME a
+                    JOIN CTB.TRANSACE_ME b
+                        ON a.dtr_transac = b.dtr_transac
+                       AND a.dtr_gestion = b.trc_gestion
+                    JOIN CTB.CUENTAE_ME c
+                        ON b.cts_cuenta  = c.cts_cuenta
+                       AND b.trc_gestion = c.cts_gestion
+                    WHERE a.dtr_status = 0
+                      AND a.dtr_gestion = " & Text.From(Year) & "
+                      AND b.trc_gestion = " & Text.From(Year) & "
+                    ORDER BY a.dtr_fecha, a.dtr_transac"
+            ]
+        ),
+
+    #"Added Entidad" = Table.AddColumn(Source, "Entidad", each "SCM")
+in
+    #"Added Entidad"
+
+
+
+
+
