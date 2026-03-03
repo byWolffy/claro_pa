@@ -1,1 +1,4 @@
 
+formatDateTime(items('Apply_to_each')?['Fecha_de_Vencimiento'],'dd-MMM-yy')
+
+first(body('Filter_array'))?['Correo']
